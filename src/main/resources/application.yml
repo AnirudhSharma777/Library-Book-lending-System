@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: LibraryLendingSystem
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/librarydb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+   
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+
+security:
+  jwt:
+    secret: ZXlKaGJHY2lPaUpJVXpJMU5pSjkuZXlKeWIyeGxJam9pUVVSTlNVNGlMQ0p6ZFdJaU9pSnFiMlY1UUdkdFlXbHNMbU52YlNJc0ltbGhkQ0k2TVRjMU1EQXhPVEE0T1N3aVpYaHdJam94TnpVd01UQTFORGc1ZlEudmc3V2x6eWs5N2VCcXNjTXZPNEJrTjBFb0ROWnNFUi1vRDRpR0VtbVc5NA
+    expiration: 3600000
