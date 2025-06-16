@@ -51,18 +51,18 @@ Secure login using JSON Web Tokens (JWTs), supporting two distinct roles:
 
 ### 🔐 Authentication
 - `POST /api/v1/auth/signup` - Register as a New Member
-- `POST /api/auth/login` – Authenticate user and get JWT token
+- `POST /api/v1/auth/login` – Authenticate user and get JWT token
 
 ### 🙋 Member Endpoints (Require `MEMBER` or `ADMIN`)
-- `GET /api/books` – View available books  
-- `POST /api/books/borrow/{bookId}` – Borrow a book  
-- `POST /api/books/return/{bookId}` – Return a book  
+- `GET /api/v1/books` – View available books  
+- `POST /api/v1/books/borrow/{bookId}` – Borrow a book  
+- `POST /api/v1/books/return/{bookId}` – Return a book  
 
 ### 👑 Admin Endpoints (Require `ADMIN`)
-- `POST /api/books` – Add a new book  
-- `PUT /api/books/{bookId}` – Update book details  
-- `DELETE /api/books/{bookId}` – Delete a book  
-- `GET /api/borrow-history` – View all borrow records  
+- `POST /api/v1/books` – Add a new book  
+- `PUT /api/v1/books/{bookId}` – Update book details  
+- `DELETE /api/v1/books/{bookId}` – Delete a book  
+- `GET /api/v1/borrow-history` – View all borrow records  
 
 ---
 
@@ -101,7 +101,7 @@ Secure login using JSON Web Tokens (JWTs), supporting two distinct roles:
 
 Clone the repo:
 ```bash
-git clone 
+git clone https://github.com/AnirudhSharma777/Library-Book-lending-System.git
 cd library-book-lending-system
 ````
 
