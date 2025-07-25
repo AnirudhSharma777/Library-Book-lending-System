@@ -25,6 +25,11 @@ public class Book {
     @Column(nullable = false)
     private String author;
 
+    @Column(
+        name = "image"
+    )
+    private String imageUrl;
+
     @Column(nullable = false)
     private String category;
 

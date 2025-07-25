@@ -5,9 +5,13 @@ import com.librarysystem.Entities.Book;
 import com.librarysystem.Exception.InsufficientCopiesException;
 import com.librarysystem.Exception.ResourceNotFoundException;
 import com.librarysystem.Repositories.BookRepository;
+import com.librarysystem.Utils.FileUpload;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -15,12 +19,16 @@ import java.util.List;
 public class BookServiceImpl implements BookService {
 
     private final BookRepository repository;
+    private final FileUpload fileUpload;
 
+    @Transactional
     @Override
-    public Book addBook(BookDto request) {
+    public Book addBook(BookDto request) throws IOException {
+        String uri = fileUpload.uploadFile(request.imageUrl());
         Book savedBook = Book.builder()
                 .title(request.title())
                 .author(request.author())
+                .imageUrl(uri)
                 .category(request.category())
                 .totalCopies(request.totalCopies())
                 .availableCopies(request.totalCopies())
@@ -28,8 +36,10 @@ public class BookServiceImpl implements BookService {
         return repository.save(savedBook);
     }
 
+    
+    @Transactional
     @Override
-    public Book updateBook(String id, BookDto request) {
+    public Book updateBook(String id, BookDto request) throws IOException {
         Book existingBook = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with ID: " + id));
 
@@ -41,8 +51,10 @@ public class BookServiceImpl implements BookService {
             throw new IllegalArgumentException("Cannot reduce total copies below currently borrowed count.");
         }
 
+        String uri = fileUpload.uploadFile(request.imageUrl());
         existingBook.setTitle(request.title());
         existingBook.setAuthor(request.author());
+        existingBook.setImageUrl(uri);
         existingBook.setCategory(request.category());
         existingBook.setTotalCopies(newTotalCopies);
         existingBook.setAvailableCopies(existingBook.getAvailableCopies() + difference); // Adjust available copies

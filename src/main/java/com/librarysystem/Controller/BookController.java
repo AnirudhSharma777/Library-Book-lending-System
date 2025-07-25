@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -40,7 +41,7 @@ public class BookController {
     @Operation(summary = "Add a new book", description = "Accessible only by ADMIN")
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Book> addBook(@Valid @RequestBody BookDto request) {
+    public ResponseEntity<Book> addBook(@Valid @ModelAttribute BookDto request) throws IOException {
         Book newBook = service.addBook(request);
         return new ResponseEntity<>(newBook, HttpStatus.CREATED);
     }
@@ -48,7 +49,7 @@ public class BookController {
     @Operation(summary = "Update an existing book", description = "Accessible only by ADMIN")
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Book> updateBook(@PathVariable("id") String id, @Valid @RequestBody BookDto request) {
+    public ResponseEntity<Book> updateBook(@PathVariable("id") String id, @Valid @ModelAttribute BookDto request) throws IOException{
         Book updatedBook = service.updateBook(id, request);
         return ResponseEntity.ok(updatedBook);
     }
@@ -92,6 +93,7 @@ public class BookController {
         return ResponseEntity.ok(new BorrowReturnResponseDto(
                 "Book '" + record.getBook().getTitle() + "' borrowed successfully by " + username,
                 record.getBook().getId(),
+                record.getBook().getImageUrl(),
                 record.getBook().getTitle(),
                 username
         ));
@@ -108,6 +110,7 @@ public class BookController {
         return ResponseEntity.ok(new BorrowReturnResponseDto(
                 "Book '" + record.getBook().getTitle() + "' returned successfully by " + username,
                 record.getBook().getId(),
+                record.getBook().getImageUrl(),
                 record.getBook().getTitle(),
                 username
         ));

@@ -1,5 +1,7 @@
 package com.librarysystem.Dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,6 +12,8 @@ public record BookDto(
 
         @NotBlank(message = "Author is required")
         String author,
+
+        MultipartFile imageUrl,
 
         @NotBlank(message = "Category is required")
         String category,

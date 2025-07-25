@@ -16,7 +16,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-   
+
+cors:
+  allowed-origins: "*"
+  allowed-methods: "*"
+  allowed-headers: "*"
+  exposed-headers: "*"   
 
 springdoc:
   swagger-ui:
@@ -29,3 +34,8 @@ security:
   jwt:
     secret: ZXlKaGJHY2lPaUpJVXpJMU5pSjkuZXlKeWIyeGxJam9pUVVSTlNVNGlMQ0p6ZFdJaU9pSnFiMlY1UUdkdFlXbHNMbU52YlNJc0ltbGhkQ0k2TVRjMU1EQXhPVEE0T1N3aVpYaHdJam94TnpVd01UQTFORGc1ZlEudmc3V2x6eWs5N2VCcXNjTXZPNEJrTjBFb0ROWnNFUi1vRDRpR0VtbVc5NA
     expiration: 3600000
+
+cloudinary:
+  cloud_name: dtayqqu2k
+  api_key: 475697773956781
+  api_secret: ZzsCtWq48uCvSoJMl7HISyplARY
