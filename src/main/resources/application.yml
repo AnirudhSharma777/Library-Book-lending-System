@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/librarydb
     username: postgres
-    password: postgres
+    password: {PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -36,6 +36,6 @@ security:
     expiration: 3600000
 
 cloudinary:
-  cloud_name: dtayqqu2k
-  api_key: 475697773956781
-  api_secret: ZzsCtWq48uCvSoJMl7HISyplARY
+  cloud_name: {CLOUDINARY_NAME}
+  api_key: {CLOUDINARY_API_KEY}
+  api_secret: {CLOUDINARY_API_SECRET}
