@@ -1,0 +1,105 @@
+<!-- Modal Toggle Button -->
+<button
+  (click)="showHandler()"
+  class="ml-3 block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+>
+  logIn
+</button>
+
+<!-- Main Modal -->
+<div
+  *ngIf="showModal"
+  tabindex="-1"
+  class="fixed inset-0 z-100 flex items-center justify-center bg-black opacity-100"
+>
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-white rounded-lg shadow-sm">
+      <!-- Header -->
+      <div
+        class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200"
+      >
+        <h3 class="text-xl font-semibold text-black">SignIn to our platform</h3>
+        <button
+          (click)="showHandler()"
+          type="button"
+          class="end-2.5 cursor-pointer text-gray-500 bg-transparent hover:text-gray-800 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 14 14">
+            <path
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+            />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 md:p-5">
+        <form #form="ngForm">
+
+          <!-- Email -->
+          <div class="mb-3 flex flex-row gap-5 w-full items-center">
+            <img
+              src="https://res.cloudinary.com/dtayqqu2k/image/upload/v1753251656/v8cdj8kcwpiqqpx7v3iu.png"
+              class="w-6 h-6"
+              alt="Email icon"
+            />
+            <input
+              type="email"
+              name="email"
+              #email="ngModel"
+              [(ngModel)]="loginObj.email"
+              required
+              class="w-full p-2 outline-0 border border-gray-400 rounded-md placeholder:text-gray-400"
+              placeholder="Email"
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="mb-3 flex flex-row gap-5 w-full items-center">
+            <img
+              src="https://res.cloudinary.com/dtayqqu2k/image/upload/v1753251655/svyimhafkuqh9kd86l3d.png"
+              class="w-6 h-6"
+              alt="Password icon"
+            />
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              #password="ngModel"
+              [(ngModel)]="loginObj.password"
+              required
+              class="relative w-full p-2 outline-0 border border-gray-400 rounded-md placeholder:text-gray-400"
+              placeholder="***"
+            />
+            <span
+              class="absolute right-8 cursor-pointer text-[12px] text-gray-500"
+              (click)="showPasswordHandler()"
+              >{{ showPassword ? "Hide" : "Show" }}
+            </span>
+          </div>
+
+          <!-- Signup button -->
+          <div class="flex flex-col mt-6 w-full justify-center">
+            <button
+              (click)="login()"
+              [disabled]="form.invalid"
+              type="button"
+              class="cursor-pointer w-30 mx-auto p-2 bg-blue-700 text-white rounded-xl"
+            >
+              login
+            </button>
+
+            <!-- <div class="flex justify-center items-baseline gap-3">
+              <span class="text-sm">Already has an account?</span>
+            </div> -->
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
