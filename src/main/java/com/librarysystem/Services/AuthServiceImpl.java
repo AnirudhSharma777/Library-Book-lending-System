@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public LoginResponseDto login(LoginDto request) {
-        // Throws BadCredentialsException for both an unknown email and a wrong password,
+        // Throws BadCredentialsException for either an unknown email or a wrong password,
         // so callers can't tell which emails are registered.
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
