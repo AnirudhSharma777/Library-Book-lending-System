@@ -2,6 +2,7 @@ package com.librarysystem.Exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -107,6 +108,15 @@ public class GlobalExceptionHandler {
         body.put("message", "Authentication Failed: " + ex.getMessage());
         body.put("path", request.getDescription(false));
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<Object> handleAuthorizationDeniedException(AccessDeniedException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", "You do not have permission to perform this action");
+        body.put("path", request.getDescription(false));
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler({DisabledException.class, LockedException.class})

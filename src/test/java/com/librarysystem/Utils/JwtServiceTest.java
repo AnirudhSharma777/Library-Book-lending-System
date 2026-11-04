@@ -1,7 +1,6 @@
-package com.librarysystem.Services;
+package com.librarysystem.Utils;
 
 import com.librarysystem.Entities.User;
-import com.librarysystem.Utils.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,7 @@ public class JwtServiceTest {
     }
 
     @Test
-    public void isTokenValid_returnFalseForAnotherUser() throws InterruptedException {
+    public void isTokenValid_returnFalseForAnotherUser() {
         User user = User.builder().email("harryl423@gmail.com").build();
         User anotherUser = User.builder().email("harryl123@gmail.com").build();
         String token = jwtService.generateToken(user);
@@ -56,7 +55,7 @@ public class JwtServiceTest {
     }
 
     @Test
-    public void isTokenValid_throwsExpiredJwtException() throws InterruptedException {
+    public void isTokenValid_throwsExpiredJwtException() {
         User user = User.builder().email("harryl423@gmail.com").build();
         ReflectionTestUtils.setField(jwtService, "jwtExpiration", -1000L);
 
