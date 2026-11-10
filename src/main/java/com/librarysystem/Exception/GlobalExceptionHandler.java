@@ -1,5 +1,6 @@
 package com.librarysystem.Exception;
 
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -126,6 +127,16 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getMessage());
         body.put("path", request.getDescription(false));
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN); // Or UNAUTHORIZED, depending on desired status
+    }
+
+    //Jwt-related Exception
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<Object> handleJwtException(JwtException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", "Invalid or expired token");
+        body.put("path", request.getDescription(false));
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     // Generic exception handler for any unhandled exceptions
