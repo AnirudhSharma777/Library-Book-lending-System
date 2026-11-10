@@ -98,7 +98,7 @@ public class AuthServiceImplTest {
         });
 
         assertEquals("Account already exists using this Email", ex.getMessage());
-
+        verify(userRepository, never()).save(any());
     }
 
     @Test

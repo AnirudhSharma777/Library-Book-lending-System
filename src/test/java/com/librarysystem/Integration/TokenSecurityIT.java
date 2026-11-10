@@ -103,6 +103,6 @@ class TokenSecurityIT {
         mockMvc.perform(get("/api/v1/borrow-records/my-history")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value(""));
+                .andExpect(jsonPath("$.message").value("Invalid or expired token"));
     }
 }

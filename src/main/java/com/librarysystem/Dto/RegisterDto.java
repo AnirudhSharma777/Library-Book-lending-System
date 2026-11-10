@@ -20,6 +20,7 @@ public record RegisterDto(
 
 //        @Pattern(regexp = "ADMIN|MEMBER", message = "Role must be ADMIN or MEMBER")
         @Pattern(regexp = "(?i)member")
+        @NotBlank
         String role
 ) {
 }

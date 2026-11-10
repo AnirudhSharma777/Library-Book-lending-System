@@ -156,6 +156,7 @@ class AuthIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.role").exists());
     }
 }
