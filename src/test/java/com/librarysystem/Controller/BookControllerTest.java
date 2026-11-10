@@ -130,4 +130,20 @@ class BookControllerTest {
 
         verify(borrowRecordService).borrowBook("book-1","harryl423@gmail.com");
     }
+
+    @Test
+    @WithMockUser(username = "harryl423@gmail.com", authorities = "ROLE_MEMBER")
+    void returnBook_returns200AndUsesLoggedInUser() throws Exception {
+
+        BorrowRecord returnRecord = new BorrowRecord();
+        returnRecord.setBook(Book.builder().title("Book of the year").build());
+        when(borrowRecordService.returnBook("book-1", "harryl423@gmail.com")).thenReturn(returnRecord);
+        mockMvc.perform(post("/api/v1/books/return/book-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message")
+                        .value("Book 'Book of the year' returned successfully by harryl423@gmail.com"));
+
+        verify(borrowRecordService).returnBook("book-1","harryl423@gmail.com");
+    }
+
 }

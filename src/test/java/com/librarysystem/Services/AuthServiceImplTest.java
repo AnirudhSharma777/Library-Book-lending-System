@@ -5,6 +5,7 @@ import com.librarysystem.Dto.RegisterDto;
 import com.librarysystem.Entities.Role;
 import com.librarysystem.Entities.User;
 import com.librarysystem.Exception.AccountAlreadyExistsException;
+import com.librarysystem.Exception.SignupFailedException;
 import com.librarysystem.Repositories.UserRepository;
 import com.librarysystem.ResponseDto.LoginResponseDto;
 import com.librarysystem.ResponseDto.RegisterResponseDto;
@@ -15,12 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -167,5 +166,27 @@ public class AuthServiceImplTest {
                 () -> authService.login(dto));
 
         assertEquals("The secret key must be at least 256 bits", ex.getMessage());
+    }
+
+    @Test
+    public void signup_throwsExceptionWhenRepositorySave() {
+        RegisterDto registerDto = new RegisterDto(
+                "Harry",
+                "harryl423@gmail.com",
+                "not.a.password",
+                "boss"
+        );
+        User u = createNormalUser();
+        when(userRepository.findByEmail("harryl423@gmail.com"))
+                .thenReturn(Optional.empty());
+        when(mapper.maptoUser(registerDto)).thenReturn(u);
+        when(userRepository.save(any())).thenThrow(new RuntimeException("DB down"));
+
+        SignupFailedException ex = assertThrows(SignupFailedException.class, () -> {
+            authService.signup(registerDto);
+        });
+
+        assertEquals("Registration failed. Please try again later.", ex.getMessage());
+        verify(mapper, never()).maptoRegisterReponseDto(any());
     }
 }

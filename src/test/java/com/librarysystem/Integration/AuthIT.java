@@ -159,4 +159,6 @@ class AuthIT {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.role").exists());
     }
+
+
 }
