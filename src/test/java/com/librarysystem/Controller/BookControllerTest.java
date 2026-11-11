@@ -1,21 +1,30 @@
 package com.librarysystem.Controller;
 
+import com.jayway.jsonpath.JsonPath;
 import com.librarysystem.Config.SecurityConfig;
+import com.librarysystem.Dto.BookDto;
 import com.librarysystem.Entities.Book;
 import com.librarysystem.Entities.BorrowRecord;
 import com.librarysystem.Exception.ResourceNotFoundException;
 import com.librarysystem.Services.BookServiceImpl;
 import com.librarysystem.Services.BorrowRecordServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -39,6 +48,15 @@ class BookControllerTest {
 
     @MockitoBean
     private AuthenticationProvider authenticationProvider; // SecurityConfig needs one; nothing calls it
+
+    @Captor
+    ArgumentCaptor<BookDto> bookDtoCaptor;
+
+    // The image part of a multipart request. Field name "imageUrl" must match BookDto.
+    // Any bytes work, because FileUpload is mocked.
+    private MockMultipartFile coverImage() {
+        return new MockMultipartFile("imageUrl", "cover.png", "image/png", "fake-image".getBytes());
+    }
 
     private List<Book> buildBookLibrary() {
         List<Book> books = new ArrayList<>();
@@ -146,4 +164,159 @@ class BookControllerTest {
         verify(borrowRecordService).returnBook("book-1","harryl423@gmail.com");
     }
 
+    // ---------- add / update book ----------
+    // Both take form fields + an image file, so requests use multipart(...).
+
+    // 1. Admin, POST /api/v1/books with all fields + image -> 201 with the book JSON,
+    //    and an ArgumentCaptor shows the form fields were copied into BookDto
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void addBook_returns201AndPassesFormFieldsToService() throws Exception {
+        MockMultipartFile image = coverImage();
+
+        Book b = Book.builder()
+                .id("c1")
+                .title("Clean Code")
+                .author("Robert Martin")
+                .category("Programming")
+                .totalCopies(3)
+                .availableCopies(3).build();
+
+        when(bookService.addBook(any(BookDto.class))).thenReturn(b);
+        mockMvc.perform(multipart("/api/v1/books")      // a POST by default
+                        .file(image)
+                        .param("title", "Clean Code")   // every other field is a text form field
+                        .param("author", "Robert Martin")
+                        .param("category", "Programming")
+                        .param("totalCopies", "3"))     // always a String; Spring converts it to Integer
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Clean Code"))
+                .andExpect(jsonPath("$.author").value("Robert Martin"))
+                .andExpect(jsonPath("$.category").value("Programming"))
+                .andExpect(jsonPath("$.totalCopies").value(3));
+
+        verify(bookService).addBook(bookDtoCaptor.capture());
+        assertEquals("Clean Code", bookDtoCaptor.getValue().title());
+        assertEquals("Robert Martin", bookDtoCaptor.getValue().author());
+        assertEquals("Programming", bookDtoCaptor.getValue().category());
+        assertEquals(3, bookDtoCaptor.getValue().totalCopies());
+        assertEquals("cover.png", bookDtoCaptor.getValue().imageUrl().getOriginalFilename());
+
+    }
+
+    // 2. Member, POST /api/v1/books -> 403, and the service is never called
+    @Test
+    @WithMockUser(authorities = "ROLE_MEMBER")
+    void addBook_returns403ForMember() throws Exception {
+
+        MockMultipartFile image = coverImage();
+
+        mockMvc.perform(multipart("/api/v1/books")      // a POST by default
+                        .file(image)
+                        .param("title", "Clean Code")   // every other field is a text form field
+                        .param("author", "Robert Martin")
+                        .param("category", "Programming")
+                        .param("totalCopies", "3"))     // always a String; Spring converts it to Integer
+                .andExpect(status().isForbidden());
+        verify(bookService, never()). addBook(any());
+    }
+
+    // 3. Admin, POST /api/v1/books with blank title and totalCopies = 0 ->
+    //    400, $.errors.title and $.errors.totalCopies exist, and the service is never called
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void addBook_returns400WhenFieldsInvalid() throws Exception {
+        MockMultipartFile image = coverImage();
+
+        mockMvc.perform(multipart("/api/v1/books")      // a POST by default
+                        .file(image)
+                        .param("title", "")   // every other field is a text form field
+                        .param("author", "Robert Martin")
+                        .param("category", "Programming")
+                        .param("totalCopies", "0"))     // always a String; Spring converts it to Integer
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.title").exists())
+                .andExpect(jsonPath("$.errors.totalCopies").exists());
+
+        verify(bookService, never()).addBook(any());
+    }
+
+    // 4. Admin, PUT /api/v1/books/1 -> 200 with the updated book,
+    //    and the service is called with id "1"
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void updateBook_returns200ForAdmin() throws Exception {
+        MockMultipartFile image = coverImage();
+
+        Book b = Book.builder()
+                .id("1")
+                .title("Clean Architecture")
+                .author("Robert Roy")
+                .category("Programming")
+                .totalCopies(5)
+                .availableCopies(5).build();
+
+        when(bookService.updateBook(eq("1"), any(BookDto.class))).thenReturn(b);
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/v1/books/1")
+                        .file(image)
+                        .param("title", "Clean Architecture")   // every other field is a text form field
+                        .param("author", "Robert Roy")
+                        .param("category", "Programming")
+                        .param("totalCopies", "2"))     // always a String; Spring converts it to Integer
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Clean Architecture"))
+                .andExpect(jsonPath("$.author").value("Robert Roy"))
+                .andExpect(jsonPath("$.category").value("Programming"))
+                .andExpect(jsonPath("$.totalCopies").value(5));
+
+        verify(bookService).updateBook(eq("1"), bookDtoCaptor.capture());
+        assertEquals("Clean Architecture", bookDtoCaptor.getValue().title());
+        assertEquals("Robert Roy", bookDtoCaptor.getValue().author());
+        assertEquals("Programming", bookDtoCaptor.getValue().category());
+        assertEquals(2, bookDtoCaptor.getValue().totalCopies());
+        assertEquals("cover.png", bookDtoCaptor.getValue().imageUrl().getOriginalFilename());
+
+    }
+
+    // 5. Admin, PUT /api/v1/books/1, service throws ResourceNotFoundException -> 404 + $.message
+    @Test
+    @WithMockUser(authorities = "ROLE_ADMIN")
+    void updateBook_returns404WhenBookNotFound() throws Exception {
+        MockMultipartFile image = coverImage();
+
+        when(bookService.updateBook(eq("1"), any(BookDto.class)))
+                .thenThrow(new ResourceNotFoundException("Book not found with ID: 1"));
+
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/v1/books/1")
+                        .file(image)
+                        .param("title", "Clean Architecture")   // every other field is a text form field
+                        .param("author", "Robert Roy")
+                        .param("category", "Programming")
+                        .param("totalCopies", "2"))     // always a String; Spring converts it to Integer
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Book not found with ID: 1"));
+
+        verify(bookService).updateBook(eq("1"), bookDtoCaptor.capture());
+        assertEquals("Clean Architecture", bookDtoCaptor.getValue().title());
+        assertEquals("Robert Roy", bookDtoCaptor.getValue().author());
+        assertEquals("Programming", bookDtoCaptor.getValue().category());
+        assertEquals(2, bookDtoCaptor.getValue().totalCopies());
+        assertEquals("cover.png", bookDtoCaptor.getValue().imageUrl().getOriginalFilename());
+    }
+
+    // 6. Member, PUT /api/v1/books/1 -> 403, and the service is never called
+    @Test
+    @WithMockUser(authorities = "ROLE_MEMBER")
+    void updateBook_returns403ForMember() throws Exception {
+        MockMultipartFile image = coverImage();
+
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/v1/books/1")      
+                        .file(image)
+                        .param("title", "Clean Architecture")   // every other field is a text form field
+                        .param("author", "Robert Roy")
+                        .param("category", "Programming")
+                        .param("totalCopies", "2"))       // always a String; Spring converts it to Integer
+                .andExpect(status().isForbidden());
+        verify(bookService, never()). updateBook(any(), any());
+    }
 }
