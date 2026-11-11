@@ -39,6 +39,10 @@ class TokenSecurityIT {
     @Autowired
     private BorrowRecordRepository borrowRecordRepository;
 
+
+    @Autowired
+    private JwtService jwtService;
+
     // Must match security.jwt.secret in application-test.yml
     private static final String TEST_SECRET = "dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLTEyMzQ=";
 
@@ -105,4 +109,24 @@ class TokenSecurityIT {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Invalid or expired token"));
     }
+
+    @Test
+    public void protectedEndpoint_returns401WithValidTokenForDeletedUser() throws Exception {
+        User user = User.builder()
+                .name("Harry")
+                .email("harryl423@gmail.com")
+                .password("not-used-in-this-test")
+                .role(Role.MEMBER)
+                .build();
+        // not saving this user = user never exist = user is deleted
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(get("/api/v1/borrow-records/my-history")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication Failed: User not found"));
+
+    }
+
 }
