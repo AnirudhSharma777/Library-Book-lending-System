@@ -8,6 +8,7 @@ import com.librarysystem.Exception.BookNotBorrowedException;
 import com.librarysystem.Repositories.BorrowRecordRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +22,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService{
     private final BookServiceImpl bookService;
 
     @Override
+    @Transactional
     public BorrowRecord borrowBook(String bookId, String email) {
         User user = userService.getUserByUsername(email);
         Book book = bookService.getBookById(bookId);
@@ -44,6 +46,7 @@ public class BorrowRecordServiceImpl implements BorrowRecordService{
     }
 
     @Override
+    @Transactional
     public BorrowRecord returnBook(String bookId, String email) {
         User user = userService.getUserByUsername(email);
         Book book = bookService.getBookById(bookId);

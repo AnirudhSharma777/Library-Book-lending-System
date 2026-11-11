@@ -4,9 +4,7 @@ import com.librarysystem.Dto.LoginDto;
 import com.librarysystem.Dto.RegisterDto;
 import com.librarysystem.Entities.User;
 import com.librarysystem.Exception.AccountAlreadyExistsException;
-import com.librarysystem.Exception.ResourceNotFoundException;
 import com.librarysystem.Exception.SignupFailedException;
-import com.librarysystem.Exception.UnauthorizedException;
 import com.librarysystem.Repositories.UserRepository;
 import com.librarysystem.ResponseDto.LoginResponseDto;
 import com.librarysystem.ResponseDto.RegisterResponseDto;
@@ -31,14 +29,12 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public RegisterResponseDto signup(RegisterDto request) {
+        boolean isEmailExist = userRepository.findByEmail(request.email()).isPresent();
+        if(isEmailExist){
+            throw new AccountAlreadyExistsException("Account already exists using this Email");
+        }
 
         try {
-
-            boolean isEmailExist = userRepository.findByEmail(request.email()).isPresent();
-            if(isEmailExist){
-                throw new AccountAlreadyExistsException("Account already exists using this Email");
-            }
-
             User user = mapper.maptoUser(request);
 
             User savedUser = userRepository.save(user);
@@ -52,24 +48,16 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public LoginResponseDto login(LoginDto request) {
-        try {
+        // Throws BadCredentialsException for either an unknown email or a wrong password,
+        // so callers can't tell which emails are registered.
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+        );
 
-            var user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFoundException("User not Found"));
+        User userDetails = (User) authentication.getPrincipal();
+        String jwt = jwtService.generateToken(userDetails);
+        long expiredIn = jwtService.getExpirationTime();
 
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
-            );
-
-            // If authentication is successful, generate JWT
-            User userDetails = (User) authentication.getPrincipal();
-            String jwt = jwtService.generateToken(userDetails);
-            long expiredIn = jwtService.getExpirationTime();
-
-            return new LoginResponseDto(jwt,expiredIn , userDetails.getRole().name());
-
-        } catch (Exception e) {
-            throw new UnauthorizedException("Invalid username or password: " + e.getMessage());
-        }
+        return new LoginResponseDto(jwt, expiredIn, userDetails.getRole().name());
     }
 }
